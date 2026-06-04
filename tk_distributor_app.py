@@ -345,7 +345,7 @@ class MainWindow(QMainWindow):
         self.running = False
         self.current_config = load_config()
 
-        self.setWindowTitle("🎬 TK 视频分发工具 v1.1.2")
+        self.setWindowTitle("🎬 TK 视频分发工具 v1.1.3")
         self.setMinimumSize(920, 720)
         self.resize(1000, 780)
 
@@ -813,10 +813,12 @@ class MainWindow(QMainWindow):
         self.refresh_video_info()
 
         # 初始日志 - 版本信息
-        self.append_log("🎬 TK 视频分发工具 v1.1.2 已启动", "OK")
+        self.append_log("🎬 TK 视频分发工具 v1.1.3 已启动", "OK")
         self.append_log("━" * 40, "INFO")
-        self.append_log("📋 更新日志 (v1.1.2):", "INFO")
-        self.append_log("   🆕 爆款素材：TikTok 热门视频爬虫", "INFO")
+        self.append_log("📋 更新日志 (v1.1.3):", "INFO")
+        self.append_log("   🆕 一键直达：快速打开下载目录", "INFO")
+        self.append_log("   🆕 批量下载新增实时进度条", "INFO")
+        self.append_log("   🐛 修复按钮文本重叠问题", "INFO")
         self.append_log("   🚀 并行上传：多台设备同时传输，提速约 2.5 倍", "INFO")
         self.append_log("   🔧 整合爬虫到 Web 端统一管理", "INFO")
         self.append_log("━" * 40, "INFO")
@@ -1145,7 +1147,7 @@ def main():
     print("\n" + "=" * 50)
     print("  🎬 TK 视频分发工具 - 桌面版")
     print("=" * 50)
-    print(f"  版本: v1.1.2")
+    print(f"  版本: v1.1.3")
     print(f"  日期: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("=" * 50 + "\n")
 

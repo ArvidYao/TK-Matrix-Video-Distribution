@@ -78,7 +78,7 @@
             <div class="flex items-center gap-3">
                 <span class="text-2xl">🎬</span>
                 <h1 class="text-xl font-bold text-white">TK 视频分发工具</h1>
-                <span class="px-2 py-0.5 text-xs rounded bg-slate-700 text-slate-400 font-mono">v1.1.2</span>
+                <span class="px-2 py-0.5 text-xs rounded bg-slate-700 text-slate-400 font-mono">v1.1.3</span>
                 <span id="statusBadge" class="hidden px-2 py-0.5 text-xs rounded-full font-medium bg-emerald-500/20 text-emerald-400">就绪</span>
             </div>
             <div class="flex items-center gap-4">
@@ -639,6 +639,9 @@
                             <button onclick="batchDownload()" id="batchDownloadBtn" class="bg-violet-600 hover:bg-violet-500 text-white py-2 px-4 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                                 <span>📥</span> 批量下载(<span id="selectedCount">0</span>)
                             </button>
+                            <button onclick="openDownloadDir()" class="bg-amber-600 hover:bg-amber-500 text-white py-2 px-4 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5">
+                                <span>📂</span> 一键直达
+                            </button>
                             <button onclick="exportCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white py-2 px-4 rounded-lg text-xs font-medium transition-colors">
                                 导出 CSV
                             </button>
@@ -647,9 +650,22 @@
                             </button>
                         </div>
                     </div>
-                    <!-- 当前保存目录提示 -->
-                    <div id="saveDirIndicator" class="px-5 pb-2 text-[11px] text-slate-500 flex items-center gap-1.5 hidden">
-                        <span>📂</span> 保存至: <span id="saveDirPath" class="text-slate-400 font-mono"></span>
+                    <!-- 当前保存目录提示 + 输入框 -->
+                    <div id="saveDirIndicator" class="px-5 pb-3 text-[11px] text-slate-500 space-y-2 hidden">
+                        <div class="flex items-center gap-1.5">
+                            <span>📂</span> 保存至: <span id="saveDirPath" class="text-slate-400 font-mono text-[10px]"></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="saveDirInput" placeholder="输入或粘贴路径..."
+                                   class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-[11px] text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
+                                   onkeydown="if(event.key==='Enter')saveDownloadDir()">
+                            <button onclick="saveDownloadDir()" class="bg-blue-600 hover:bg-blue-500 text-white py-1.5 px-3 rounded-lg text-[10px] font-medium transition-colors whitespace-nowrap">
+                                应用
+                            </button>
+                            <button onclick="resetDownloadDir()" class="text-[10px] text-slate-500 hover:text-slate-300 transition-colors whitespace-nowrap" title="恢复默认目录">
+                                重置
+                            </button>
+                        </div>
                     </div>
                     <!-- 全选栏 -->
                     <div class="flex items-center gap-3 px-5 py-2 border-b border-slate-700/30">
@@ -855,6 +871,30 @@
                             </button>
                         </div>
                         <p class="text-xs text-slate-500 mt-2">点击按钮打开访达选择视频目录（支持拖拽文件夹到输入框）</p>
+                    </div>
+
+                    <!-- 下载目录设置 -->
+                    <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                        <h3 class="text-sm font-medium text-slate-300 mb-4 flex items-center gap-2">
+                            <span>📥</span> 素材下载目录
+                        </h3>
+                        <p class="text-xs text-slate-500 mb-3">TikTok 爆款素材搜索后下载视频的保存位置，支持自定义命名规则（日期_标题.mp4）</p>
+                        <div class="flex gap-3">
+                            <input type="text" id="settingDownloadDir" placeholder="downloads/videos"
+                                   class="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono text-xs">
+                            <button onclick="chooseSettingDownloadDir()" class="bg-violet-600 hover:bg-violet-500 text-white py-2.5 px-5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5">
+                                <span>📁</span> 选择目录
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <button onclick="saveSettingDownloadDir()" class="bg-blue-600/50 hover:bg-blue-500/50 text-blue-300 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors">
+                                应用
+                            </button>
+                            <button onclick="resetSettingDownloadDir()" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">
+                                恢复默认
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">📝 下载后自动命名为: <span class="text-slate-400 font-mono">YYYYMMDD_视频标题.mp4</span></p>
                     </div>
 
                     <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
@@ -1076,12 +1116,25 @@
                 <div class="flex items-center gap-2.5">
                     <span class="text-lg">📋</span>
                     <h2 class="text-base font-semibold text-white">更新日志</h2>
-                    <span class="px-2 py-0.5 text-xs rounded bg-slate-700 text-slate-400 font-mono">v1.1.2</span>
+                    <span class="px-2 py-0.5 text-xs rounded bg-slate-700 text-slate-400 font-mono">v1.1.3</span>
                 </div>
                 <button onclick="document.getElementById('changelogModal').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors text-xl leading-none p-1">&times;</button>
             </div>
             <!-- 内容区 -->
             <div class="overflow-y-auto p-6 space-y-6">
+                <!-- v1.1.3 -->
+                <div class="border-l-2 border-violet-500 pl-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2 py-0.5 text-xs font-mono font-bold rounded bg-violet-500/20 text-violet-400">v1.1.3</span>
+                        <span class="text-xs text-slate-500">2026-06-04</span>
+                    </div>
+                    <ul class="space-y-1.5 text-sm text-slate-300">
+                        <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">+</span> 新增「一键直达」按钮，在系统文件管理器中快速打开下载目录</li>
+                        <li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5">+</span> 批量下载新增实时进度条指示器，可视化显示下载进度与完成状态</li>
+                        <li class="flex items-start gap-2"><span class="text-amber-400 mt-0.5">*</span> 修复批量下载完成后按钮文本重叠问题（📥 批量下载(0) 重复显示）</li>
+                    </ul>
+                </div>
+
                 <!-- v1.1.2 -->
                 <div class="border-l-2 border-amber-500 pl-4">
                     <div class="flex items-center gap-2 mb-2">
@@ -2193,6 +2246,69 @@ async function loadSettings() {
         document.getElementById('settingKeepFailed').checked = data.keep_failed_videos !== false;
     } catch (e) {
         showToast('加载设置失败', 'error');
+    }
+
+    // 加载下载目录设置
+    try {
+        const dlData = await api('GET', '/api/download/settings');
+        if (dlData.success) {
+            document.getElementById('settingDownloadDir').value = dlData.download_dir || '';
+        }
+    } catch (e) {
+        // 静默处理
+    }
+}
+
+async function chooseSettingDownloadDir() {
+    try {
+        const res = await api('POST', '/api/scraper/video/choose-dir');
+        if (res.success && res.path) {
+            document.getElementById('settingDownloadDir').value = res.path;
+            // 同步更新前端全局变量 + 持久化
+            currentSaveDir = res.path;
+            localStorage.setItem('tk_save_dir', currentSaveDir);
+            updateSaveDirUI(currentSaveDir);
+            persistDownloadDir(currentSaveDir);
+            document.getElementById('chooseDirLabel').textContent = '更改目录';
+            showToast('下载目录已更新', 'success');
+        }
+    } catch (e) {
+        showToast('选择目录失败', 'error');
+    }
+}
+
+async function saveSettingDownloadDir() {
+    var dir = document.getElementById('settingDownloadDir').value.trim();
+    if (!dir) { showToast('请输入目录路径', 'error'); return; }
+    try {
+        var res = await api('PUT', '/api/download/settings', { download_dir: dir });
+        if (res.success) {
+            currentSaveDir = res.download_dir;
+            localStorage.setItem('tk_save_dir', currentSaveDir);
+            updateSaveDirUI(currentSaveDir);
+            document.getElementById('chooseDirLabel').textContent = '更改目录';
+            showToast('下载目录已保存', 'success');
+        } else {
+            showToast('保存失败: ' + (res.error || '未知错误'), 'error');
+        }
+    } catch (e) {
+        showToast('保存失败', 'error');
+    }
+}
+
+async function resetSettingDownloadDir() {
+    try {
+        var res = await api('DELETE', '/api/download/settings');
+        if (res.success) {
+            document.getElementById('settingDownloadDir').value = res.download_dir || '';
+            currentSaveDir = res.download_dir;
+            localStorage.setItem('tk_save_dir', currentSaveDir);
+            updateSaveDirUI(currentSaveDir);
+            document.getElementById('chooseDirLabel').textContent = '选择保存目录';
+            showToast('下载目录已恢复默认', 'success');
+        }
+    } catch (e) {
+        showToast('重置失败', 'error');
     }
 }
 
@@ -3467,9 +3583,10 @@ function chooseDownloadDir() {
         if (data.success && data.path) {
             currentSaveDir = data.path;
             localStorage.setItem('tk_save_dir', currentSaveDir);
-            document.getElementById('saveDirIndicator').classList.remove('hidden');
-            document.getElementById('saveDirPath').textContent = currentSaveDir;
-            document.getElementById('chooseDirLabel').textContent = '更改目录';
+            // 更新显示 + 输入框
+            updateSaveDirUI(currentSaveDir);
+            // 持久化到后端
+            persistDownloadDir(currentSaveDir);
         }
     })
     .catch(function(err) {
@@ -3477,15 +3594,71 @@ function chooseDownloadDir() {
     });
 }
 
+function updateSaveDirUI(dir) {
+    document.getElementById('saveDirIndicator').classList.remove('hidden');
+    document.getElementById('saveDirPath').textContent = dir;
+    document.getElementById('saveDirInput').value = dir;
+    document.getElementById('chooseDirLabel').textContent = '更改目录';
+}
+
+function saveDownloadDir() {
+    var input = document.getElementById('saveDirInput');
+    var dir = input.value.trim();
+    if (!dir) { alert('请输入目录路径'); return; }
+    currentSaveDir = dir;
+    localStorage.setItem('tk_save_dir', currentSaveDir);
+    updateSaveDirUI(currentSaveDir);
+    persistDownloadDir(currentSaveDir);
+    showToast('下载目录已更新: ' + dir, 'success');
+}
+
+function resetDownloadDir() {
+    fetch('/api/download/settings', { method: 'DELETE' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            currentSaveDir = data.download_dir;
+            localStorage.setItem('tk_save_dir', currentSaveDir);
+            updateSaveDirUI(currentSaveDir);
+            document.getElementById('chooseDirLabel').textContent = '选择保存目录';
+            showToast('下载目录已重置为默认', 'success');
+        }
+    })
+    .catch(function(err) {
+        showToast('重置失败: ' + err.message, 'error');
+    });
+}
+
+function persistDownloadDir(dir) {
+    fetch('/api/download/settings', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ download_dir: dir }),
+    }).catch(function() { /* 静默失败，不影响主流程 */ });
+}
+
 // 页面加载时恢复保存目录
 (function() {
-    var saved = localStorage.getItem('tk_save_dir');
-    if (saved) {
-        currentSaveDir = saved;
-        document.getElementById('saveDirIndicator').classList.remove('hidden');
-        document.getElementById('saveDirPath').textContent = currentSaveDir;
-        document.getElementById('chooseDirLabel').textContent = '更改目录';
-    }
+    // 优先从后端加载持久化设置
+    fetch('/api/download/settings')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success && data.download_dir) {
+            currentSaveDir = data.download_dir;
+            localStorage.setItem('tk_save_dir', currentSaveDir);
+            updateSaveDirUI(currentSaveDir);
+            document.getElementById('chooseDirLabel').textContent = data.is_default ? '选择保存目录' : '更改目录';
+        }
+    })
+    .catch(function() {
+        // 后端不可用时回退到 localStorage
+        var saved = localStorage.getItem('tk_save_dir');
+        if (saved) {
+            currentSaveDir = saved;
+            updateSaveDirUI(currentSaveDir);
+            document.getElementById('chooseDirLabel').textContent = '更改目录';
+        }
+    });
 })();
 
 function batchDownload() {
@@ -3500,12 +3673,16 @@ function batchDownload() {
     progressPanel.classList.remove('hidden');
     document.getElementById('batchDownloadLog').innerHTML = '';
     document.getElementById('batchProgressBar').style.width = '0%';
+    // 重置进度条颜色
+    var bar = document.getElementById('batchProgressBar');
+    bar.classList.remove('bg-emerald-500');
+    bar.classList.add('bg-violet-500');
     document.getElementById('batchProgressText').textContent = '0/' + videos.length;
 
-    // 禁用按钮
+    // 禁用按钮 + 更新按钮文本为下载中状态
     var btn = document.getElementById('batchDownloadBtn');
     btn.disabled = true;
-    btn.querySelector('span').textContent = '⏳ 下载中...';
+    btn.innerHTML = '<span>⏳</span> 下载中...';
 
     var total = videos.length;
     var completed = 0;
@@ -3531,10 +3708,32 @@ function batchDownload() {
 
     function finishBatch() {
         btn.disabled = false;
-        btn.querySelector('span').textContent = '📥 批量下载(0)';
+        // Bug修复: 使用 innerHTML 重建按钮内容，避免文本重叠
+        btn.innerHTML = '<span>📥</span> 批量下载(<span id="selectedCount">0</span>)';
         document.getElementById('selectedCount').textContent = '0';
+
+        // 取消全选复选框
+        var selectAll = document.getElementById('selectAllCheckbox');
+        if (selectAll) selectAll.checked = false;
+
+        // 进度条显示完成状态
+        var progressBar = document.getElementById('batchProgressBar');
+        progressBar.style.width = '100%';
+        progressBar.classList.remove('bg-violet-500');
+        progressBar.classList.add('bg-emerald-500');
+        document.getElementById('batchProgressText').textContent = total + '/' + total + ' 完成! (成功:' + successCount + ' 失败:' + failCount + ')';
+
         addBatchLog('━━━━━━━━━━━━━━━━━━━', '');
         addBatchLog('批量下载完成: 成功 ' + successCount + ' 个, 失败 ' + failCount + ' 个', successCount === total ? 'success' : '');
+
+        // 5秒后自动隐藏进度面板并重置进度条
+        setTimeout(function() {
+            var panel = document.getElementById('batchDownloadProgress');
+            if (panel) panel.classList.add('hidden');
+            progressBar.style.width = '0%';
+            progressBar.classList.remove('bg-emerald-500');
+            progressBar.classList.add('bg-violet-500');
+        }, 5000);
     }
 
     function downloadNext() {
@@ -3554,6 +3753,7 @@ function batchDownload() {
                     video_url: v.video_url,
                     video_id: v.video_id || '',
                     save_dir: currentSaveDir || '',
+                    description: v.description || '',
                 }),
             })
             .then(function(r) { return r.json(); })
@@ -3713,6 +3913,7 @@ function downloadSingleVideo(video, btn) {
             video_id: video.video_id || '',
             save_dir: currentSaveDir || '',
             watermark: document.getElementById('watermarkToggle').checked,
+            description: video.description || '',
         }),
     })
     .then(function(r) { return r.json(); })
@@ -3777,6 +3978,7 @@ function downloadVideo() {
             video_id: currentVideoData.video_id || '',
             save_dir: currentSaveDir || '',
             watermark: document.getElementById('watermarkToggle').checked,
+            description: currentVideoData.description || '',
         }),
     })
     .then(function(r) { return r.json(); })
@@ -3926,6 +4128,22 @@ function revealInFinder(filepath) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         alert('文件已保存至: downloads/videos/' + (filepath ? filepath.split('/').pop() : ''));
+    });
+}
+
+function openDownloadDir() {
+    // 一键直达：在系统文件管理器中打开下载目录
+    fetch('/api/download/open-dir', { method: 'POST' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            showToast('已打开下载目录: ' + data.directory, 'success');
+        } else {
+            showToast('打开目录失败: ' + (data.error || '未知错误'), 'error');
+        }
+    })
+    .catch(function(err) {
+        showToast('打开目录失败: ' + err.message, 'error');
     });
 }
 

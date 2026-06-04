@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TK 视频分发工具 v1.1.2 - 桌面版
+TK 视频分发工具 v1.1.3 - 桌面版
 作者：姐夫
 """
 
@@ -18,7 +18,7 @@ CONFIG_FILE = BASE_DIR / "config.yaml"
 class TKDistributorApp:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title(f"TK 视频分发工具 v1.1.2")
+        self.root.title(f"TK 视频分发工具 v1.1.3")
         self.root.geometry("880x720")
         self.root.minsize(750, 600)
         self.root.configure(bg="#f5f5f7")
@@ -49,7 +49,7 @@ class TKDistributorApp:
         top.pack(fill=tk.X, padx=16, pady=(12, 4))
         ttk.Label(top, text="TK 视频分发工具",
                   font=("Helvetica", 18, "bold")).pack(side=tk.LEFT)
-        ttk.Label(top, text="v1.1.2  作者：姐夫",
+        ttk.Label(top, text="v1.1.3  作者：姐夫",
                   font=("Helvetica", 11), foreground="#888").pack(side=tk.LEFT, padx=10)
 
         # ── 视频源目录 ──

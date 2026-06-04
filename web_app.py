@@ -52,6 +52,7 @@ import import_to_iphone
 import clear_iphone_photos
 import captions_manager
 import airdrop_manager
+import download_manager
 
 # 导入 TikTok 爬虫模块
 try:
@@ -1078,10 +1079,59 @@ def api_scraper_results():
 
 
 # ── 视频下载管理 ──
-SCRAPER_DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads", "videos")
+# 下载目录统一由 download_manager 模块管理（支持持久化设置）
 # 下载任务状态追踪 { video_id: {"status": "downloading"|"done"|"error", "filename": ..., "progress": ...} }
 _download_tasks = {}
 _download_lock = threading.Lock()
+
+
+# ── 下载设置管理 API ──
+
+@app.route("/api/download/settings", methods=["GET"])
+def api_download_settings():
+    """获取下载目录设置"""
+    try:
+        settings = download_manager.DownloadSettings()
+        return jsonify({"success": True, **settings.get_settings_dict()})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/download/settings", methods=["PUT"])
+def api_download_settings_update():
+    """更新下载目录设置（文本方式，无需弹窗）"""
+    try:
+        data = request.json or {}
+        new_dir = data.get("download_dir", "").strip()
+
+        if not new_dir:
+            return jsonify({"success": False, "error": "下载目录不能为空"}), 400
+
+        if not os.path.isabs(new_dir):
+            new_dir = os.path.abspath(os.path.join(SCRIPT_DIR, new_dir))
+
+        os.makedirs(new_dir, exist_ok=True)
+        settings = download_manager.DownloadSettings()
+        settings.set_download_dir(new_dir)
+
+        app.logger.info(f"下载目录已更新为: {new_dir}")
+        return jsonify({"success": True, **settings.get_settings_dict()})
+    except PermissionError:
+        return jsonify({"success": False, "error": "没有权限创建该目录"}), 403
+    except Exception as e:
+        app.logger.error(f"更新下载目录失败: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/download/settings", methods=["DELETE"])
+def api_download_settings_reset():
+    """重置下载目录为默认值"""
+    try:
+        settings = download_manager.DownloadSettings()
+        settings.reset_to_default()
+        return jsonify({"success": True, **settings.get_settings_dict()})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/scraper/video/choose-dir", methods=["POST"])
@@ -1119,27 +1169,29 @@ def api_scraper_video_choose_dir():
 
 @app.route("/api/scraper/video/download", methods=["POST"])
 def api_scraper_video_download():
-    """下载 TikTok 视频素材到本地，支持去水印模式。
+    """下载 TikTok 视频素材到本地，支持去水印模式，下载后自动重命名为「日期_标题.mp4」。
 
     请求 JSON:
-        video_url:  TikTok 视频页面 URL
-        video_id:   视频 ID（任意标识）
-        save_dir:   保存目录（可选）
-        watermark:  是否保留水印 (bool, 默认 true)
+        video_url:   TikTok 视频页面 URL
+        video_id:    视频 ID（任意标识）
+        save_dir:    保存目录（可选，不传则使用持久化设置或默认目录）
+        watermark:   是否保留水印 (bool, 默认 true)
                        - true:  带水印下载（yt-dlp 默认格式）
                        - false: 去水印下载（通过 TikTok API 获取 clean_url）
+        description: 视频标题/描述（用于下载后自动重命名，可选）
     """
     data = request.json or {}
     video_url = data.get("video_url", "")
     video_id = data.get("video_id", "")
     save_dir = data.get("save_dir", "")
+    description = data.get("description", "")
     remove_watermark = not data.get("watermark", True)  # watermark=true 默认保留水印
 
     if not video_url:
         return jsonify({"success": False, "message": "缺少视频链接"}), 400
 
-    # 确定下载输出目录
-    output_dir = save_dir if save_dir else SCRAPER_DOWNLOAD_DIR
+    # 使用 download_manager 统一获取下载目录
+    output_dir = download_manager.get_effective_download_dir(save_dir)
     os.makedirs(output_dir, exist_ok=True)
 
     # 检查是否已有相同任务
@@ -1165,6 +1217,7 @@ def api_scraper_video_download():
         _download_tasks[task_key] = {
             "status": "downloading",
             "filename": None,
+            "filepath": None,
             "error": None,
             "watermark_removed": remove_watermark,
         }
@@ -1173,6 +1226,7 @@ def api_scraper_video_download():
         download_url = video_url
         watermark_status = "with_watermark"
         use_direct_url = False
+        api_title = description  # 标题来源：优先用户传入
 
         # ── 核心优化：始终先通过 TikTok API 解析直链 ──
         # 原因：yt-dlp 内置 TikTok 提取器因网页结构变化频繁失效，
@@ -1180,6 +1234,11 @@ def api_scraper_video_download():
         try:
             logger.info(f"🔍 解析 TikTok 视频直链 [{video_id}]")
             info = fetch_video_info(video_url)
+
+            # 如果前端未传描述，从 API 获取
+            if not api_title and info.get("desc"):
+                api_title = info["desc"]
+                logger.info(f"📝 从 TikTok API 获取标题: {api_title[:50]}...")
 
             if remove_watermark and info.get("clean_url"):
                 # 用户要求去水印 + API 有无水印链接
@@ -1237,12 +1296,30 @@ def api_scraper_video_download():
                     filepath = files[0] if files else None
 
                 if filepath and os.path.exists(filepath):
-                    filename = os.path.basename(filepath)
+                    # ── ★ 下载后自动重命名为「日期_标题.mp4」──
+                    try:
+                        # 如果 yt-dlp 本身返回了标题，优先使用
+                        ytdlp_title = None
+                        title_match = re.search(r'\[download\]\s+(.+?)\s+has already been downloaded|\[download\]\s+Destination:\s*(.+)', output)
+                        # 使用 download_manager 重命名
+                        rename_result = download_manager.rename_downloaded_video(
+                            filepath=filepath,
+                            title=api_title or video_id,
+                        )
+                        final_filepath = rename_result["filepath"]
+                        final_filename = rename_result["filename"]
+                        logger.info(f"✓ 视频已重命名 [{video_id}]: {final_filename}")
+                    except Exception as rename_err:
+                        # 重命名失败不阻止下载完成，使用原始文件名
+                        logger.warning(f"重命名失败，保留原始文件名 [{video_id}]: {rename_err}")
+                        final_filepath = filepath
+                        final_filename = os.path.basename(filepath)
+
                     with _download_lock:
                         _download_tasks[task_key] = {
                             "status": "done",
-                            "filename": filename,
-                            "filepath": filepath,
+                            "filename": final_filename,
+                            "filepath": final_filepath,
                             "watermark_status": watermark_status,
                         }
                 else:
@@ -1291,6 +1368,7 @@ def api_scraper_video_download():
         "message": f"开始下载{'（去水印模式）' if remove_watermark else ''}",
         "video_id": video_id,
         "watermark_removed": remove_watermark,
+        "output_dir": output_dir,
     })
 
 
@@ -1323,9 +1401,10 @@ def api_scraper_video_status():
 @app.route("/api/scraper/video/list")
 def api_scraper_video_list():
     """列出已下载的视频文件"""
+    download_dir = download_manager.get_effective_download_dir()
     downloaded = []
-    if os.path.exists(SCRAPER_DOWNLOAD_DIR):
-        for f in sorted(glob.glob(os.path.join(SCRAPER_DOWNLOAD_DIR, "*")), key=os.path.getmtime, reverse=True):
+    if os.path.exists(download_dir):
+        for f in sorted(glob.glob(os.path.join(download_dir, "*")), key=os.path.getmtime, reverse=True):
             if os.path.isfile(f):
                 downloaded.append({
                     "filename": os.path.basename(f),
@@ -1333,7 +1412,34 @@ def api_scraper_video_list():
                     "size": os.path.getsize(f),
                     "mtime": os.path.getmtime(f),
                 })
-    return jsonify({"files": downloaded, "count": len(downloaded)})
+    return jsonify({
+        "files": downloaded,
+        "count": len(downloaded),
+        "directory": download_dir,
+    })
+
+
+@app.route("/api/download/open-dir", methods=["POST"])
+def api_open_download_dir():
+    """在系统文件管理器中打开下载目录（一键直达）"""
+    try:
+        download_dir = download_manager.get_effective_download_dir()
+        os.makedirs(download_dir, exist_ok=True)
+
+        import platform
+        system = platform.system()
+        if system == "Darwin":
+            subprocess.Popen(["open", download_dir])
+        elif system == "Windows":
+            os.startfile(download_dir)
+        else:
+            subprocess.Popen(["xdg-open", download_dir])
+
+        app.logger.info(f"已打开下载目录: {download_dir}")
+        return jsonify({"success": True, "directory": download_dir})
+    except Exception as e:
+        app.logger.error(f"打开下载目录失败: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/scraper/watermark/health")
