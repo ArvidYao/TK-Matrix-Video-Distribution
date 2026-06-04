@@ -1,0 +1,77 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: 🎬
+        - heading "TK 视频分发工具" [level=1] [ref=e6]
+        - generic [ref=e7]: v1.0.6
+      - generic [ref=e8]:
+        - button "📖 使用说明" [ref=e9] [cursor=pointer]
+        - button "📋 更新日志" [ref=e10] [cursor=pointer]
+        - button "⚙️ 设置" [ref=e11] [cursor=pointer]
+  - generic [ref=e13]:
+    - navigation [ref=e14]:
+      - generic [ref=e15]:
+        - button "📊 仪表盘" [ref=e16] [cursor=pointer]
+        - button "🚀 分发执行" [ref=e17] [cursor=pointer]
+        - button "📱 设备管理" [ref=e18] [cursor=pointer]
+        - button "🎞️ 视频管理" [ref=e19] [cursor=pointer]
+        - button "📝 文案分发" [ref=e20] [cursor=pointer]
+        - button "📋 历史记录" [ref=e21] [cursor=pointer]
+        - button "📝 日志" [ref=e22] [cursor=pointer]
+        - generic [ref=e23]:
+          - paragraph [ref=e24]: 快捷操作
+          - button "🔍 扫描设备" [ref=e25] [cursor=pointer]
+          - button "🔄 刷新视频" [ref=e26] [cursor=pointer]
+      - paragraph [ref=e28]: 作者：姐夫
+    - main [ref=e29]:
+      - generic [ref=e30]:
+        - heading "仪表盘" [level=2] [ref=e31]
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - generic [ref=e35]: 已连接设备
+              - generic [ref=e36]: 📱
+            - paragraph [ref=e37]: "--"
+          - generic [ref=e38]:
+            - generic [ref=e39]:
+              - generic [ref=e40]: 待分发视频
+              - generic [ref=e41]: 🎬
+            - paragraph [ref=e42]: "--"
+          - generic [ref=e43]:
+            - generic [ref=e44]:
+              - generic [ref=e45]: 今日分发次数
+              - generic [ref=e46]: 📈
+            - paragraph [ref=e47]: "0"
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - generic [ref=e50]: 累计分发视频
+              - generic [ref=e51]: ✅
+            - paragraph [ref=e52]: "0"
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - heading "快速开始" [level=3] [ref=e55]
+            - generic [ref=e56]:
+              - button "🚀 开始分发" [ref=e57] [cursor=pointer]:
+                - generic [ref=e58]: 🚀
+                - text: 开始分发
+              - generic [ref=e59]:
+                - button "🔍 扫描设备" [ref=e60] [cursor=pointer]
+                - button "🎞 刷新视频" [ref=e61] [cursor=pointer]
+                - button "⚙️ 修改设置" [ref=e62] [cursor=pointer]
+                - button "📋 查看历史" [ref=e63] [cursor=pointer]
+          - generic [ref=e64]:
+            - heading "最近一次分发" [level=3] [ref=e65]
+            - paragraph [ref=e67]: 暂无记录
+        - generic [ref=e68]:
+          - heading "今日概览" [level=3] [ref=e69]
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - paragraph [ref=e72]: "0"
+              - paragraph [ref=e73]: 成功设备数
+            - generic [ref=e74]:
+              - paragraph [ref=e75]: "0"
+              - paragraph [ref=e76]: 失败设备数
+            - generic [ref=e77]:
+              - paragraph [ref=e78]: 0 MB
+              - paragraph [ref=e79]: 待分发总大小

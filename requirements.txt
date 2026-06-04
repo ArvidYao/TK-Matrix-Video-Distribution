@@ -1,0 +1,31 @@
+# TK 视频分发工具 — 跨平台依赖
+# Python >= 3.8
+
+# ===== 核心 =====
+flask>=2.0
+pyyaml>=6.0
+pyMobileDevice3>=7.0
+
+# ===== GUI 自动化（所有平台）=====
+pyautogui>=0.9
+opencv-python-headless>=4.5
+Pillow>=10.0
+numpy>=1.24
+
+# ===== Windows 专属 =====
+pygetwindow>=0.0.9; sys_platform == 'win32'
+pywin32>=305; sys_platform == 'win32'
+
+# ===== 桌面 GUI =====
+PyQt6>=6.5; sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'
+
+# ===== TikTok 爬虫 =====
+playwright>=1.40
+yt-dlp>=2024.0
+
+# ===== macOS 专属（PyObjC 桥接）=====
+pyobjc-framework-Cocoa>=10.0; sys_platform == 'darwin'
+
+# ===== macOS 已有（无需额外 pip 安装）=====
+# - osascript (系统自带)
+# - libimobiledevice (需 brew install)
